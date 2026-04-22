@@ -128,3 +128,15 @@ session_id,timestamp_ms,event_type,value
 1776843184,103926,ability_loss,hit
 1776843184,109284,ability_loss,hit
 1776843184,131604,ability_loss,hit
+1776859483,7577,ability_loss,hit
+1776859483,26135,ability_loss,discard
+1776859483,30677,ability_loss,hit
+1776859483,44490,ability_loss,hit
+1776859483,93687,ability_loss,discard
+1776859483,99758,ability_loss,hit
+1776859483,104507,ability_loss,discard
+1776859483,135747,ability_loss,hit
+1776859483,137737,ability_loss,hit
+1776859483,148420,ability_loss,hit
+1776859483,150238,ability_loss,hit
+1776859677,216250,ability_loss,discard
