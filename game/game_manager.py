@@ -2097,10 +2097,11 @@ class GameManager:
         now = pygame.time.get_ticks()
         pulse = 0.65 + 0.35 * math.sin(now * 0.0045)
         cx = self.player.rect.centerx - self.camera_x
-        cy = self.player.rect.centery + 4
+        cy = self.player.visual_center_y + 40 # position middle real sprite 
 
         # ── Base pulsing ring ─────────────────────────────────────────────────
-        r = int(22 * pulse)
+        vr = self.player.visual_radius
+        r = int(vr * pulse)
         diam = r * 2 + 10
         surf = pygame.Surface((diam, diam), pygame.SRCALPHA)
         pygame.draw.circle(surf, (*aura_color, int(55 * pulse)), (diam // 2, diam // 2), r)
@@ -2108,26 +2109,28 @@ class GameManager:
         self.screen.blit(surf, (cx - diam // 2, cy - diam // 2))
 
         # ── Per-ability orbital effects ────────────────────────────────────────
+        orb_rx = int(vr * 1)   # radius x
+        orb_ry = int(vr * 0.5)   # radius y
         if ability == "flamethrower":
             # 4 orbiting flame orbs with bright cores
             for i in range(4):
                 a = now * 0.005 + i * (math.pi / 2)
-                ox = int(cx + math.cos(a) * 26)
-                oy = int(cy + math.sin(a) * 16)
+                ox = int(cx + math.cos(a) * orb_rx)
+                oy = int(cy + math.sin(a) * orb_ry)
                 pygame.draw.circle(self.screen, (255, 100, 15), (ox, oy), 5)
                 pygame.draw.circle(self.screen, (255, 210, 80), (ox, oy), 2)
                 # Trailing spark
                 ta = a - 0.45
-                tx = int(cx + math.cos(ta) * 26)
-                ty = int(cy + math.sin(ta) * 16)
+                tx = int(cx + math.cos(ta) * orb_rx)
+                ty = int(cy + math.sin(ta) * orb_ry)
                 pygame.draw.line(self.screen, (255, 80, 10), (tx, ty), (ox, oy), 2)
 
         elif ability == "snowfall":
             # 6 slowly orbiting ice crystals (cross shape)
             for i in range(6):
                 a = now * 0.0018 + i * (math.pi / 3)
-                ox = int(cx + math.cos(a) * 28)
-                oy = int(cy + math.sin(a) * 18)
+                ox = int(cx + math.cos(a) * (orb_rx + 8))
+                oy = int(cy + math.sin(a) * (orb_ry + 5))
                 cr = (140, 220, 255)
                 pygame.draw.line(self.screen, cr, (ox - 4, oy), (ox + 4, oy), 1)
                 pygame.draw.line(self.screen, cr, (ox, oy - 4), (ox, oy + 4), 1)
@@ -2139,14 +2142,14 @@ class GameManager:
             # 6 fast silver sparks with motion trails
             for i in range(6):
                 a = now * 0.013 + i * (math.pi / 3)
-                ox = int(cx + math.cos(a) * 30)
-                oy = int(cy + math.sin(a) * 20)
+                ox = int(cx + math.cos(a) * (orb_rx + 12))
+                oy = int(cy + math.sin(a) * (orb_ry + 8))
                 pygame.draw.circle(self.screen, (230, 230, 255), (ox, oy), 3)
                 # Trail (two fading steps)
                 for step, alpha_frac in [(0.25, 160), (0.50, 80)]:
                     ta = a - step
-                    tx = int(cx + math.cos(ta) * 30)
-                    ty = int(cy + math.sin(ta) * 20)
+                    tx = int(cx + math.cos(ta) * (orb_rx + 12))
+                    ty = int(cy + math.sin(ta) * (orb_ry + 8))
                     tr_surf = pygame.Surface((6, 6), pygame.SRCALPHA)
                     pygame.draw.circle(tr_surf, (200, 200, 240, alpha_frac), (3, 3), 2)
                     self.screen.blit(tr_surf, (tx - 3, ty - 3))

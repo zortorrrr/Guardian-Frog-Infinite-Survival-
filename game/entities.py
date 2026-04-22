@@ -188,6 +188,18 @@ class Player(Entity):
     def on_ground(self) -> bool:
         return self.is_grounded
 
+    @property
+    def visual_center_y(self) -> int:
+        """Y middle bottom sprite as we see (world coords) for draw aura/VFX"""
+        # sprite midbottom at rect.bottom + 42, height 150px
+        # real frog at ~65% → center at ~35% from top
+        return self.rect.bottom + 42 - int(150 * 0.65)
+
+    @property
+    def visual_radius(self) -> int:
+        """ sprite  aura/VFX"""
+        return 52  # ~70% from 150/2
+
     def snatch_tongue(self) -> pygame.Rect:
         width = 64
         height = 16
@@ -299,15 +311,17 @@ class Player(Entity):
             else:
                 flipped_sprite = sprite
             
-            # Scale sprite to fit hitbox better
+            # Scale sprite to a fixed display height, preserving aspect ratio
+            TARGET_HEIGHT = 160
+            SPRITE_BOTTOM_OFFSET = 55   # black padding  PNG (~28% ของ height)
+            scale_factor = TARGET_HEIGHT / flipped_sprite.get_height()
             scaled_size = (
-                int(flipped_sprite.get_width() * 1.0),
-                int(flipped_sprite.get_height() * 1.0)
+                int(flipped_sprite.get_width() * scale_factor),
+                TARGET_HEIGHT,
             )
             scaled_sprite = pygame.transform.scale(flipped_sprite, scaled_size)
-            
-            # Align sprite to hitbox bottom
-            sprite_pos = (draw_rect.centerx, draw_rect.bottom + 10)
+
+            sprite_pos = (draw_rect.centerx, draw_rect.bottom + SPRITE_BOTTOM_OFFSET)
             sprite_rect = scaled_sprite.get_rect(midbottom=sprite_pos)
             surface.blit(scaled_sprite, sprite_rect)
         else:
