@@ -30,6 +30,7 @@ from .settings import (
     PIT_RESPAWN_X,
     PLATFORM_COLOR,
     PLAYER_ATTACK_COOLDOWN_MS,
+    PLAYER_MAX_HEALTH,
     SNOWFALL_COOLDOWN_MS,
     SWORD_WHIRLWIND_COOLDOWN_MS,
     SWORD_WHIRLWIND_EFFECT_MS,
@@ -185,7 +186,7 @@ class GameManager:
         self._death_particles: list[dict] = []
         self._heart_bounce: list[float] = [0.0] * 5   # per-heart bounce offset
         self._heart_bounce_timer: list[int] = [0] * 5
-        self._last_player_health: int = 5              # track HP changes for bounce
+        self._last_player_health: float = float(PLAYER_MAX_HEALTH)
 
         # ── Screen shake ──────────────────────────────────────────────────────
         self._shake_until_ms: int = 0
@@ -280,7 +281,7 @@ class GameManager:
                         self._start_game()
                     elif self._stats_button_rect.collidepoint(event.pos):
                         self._open_stats_window()
-                        self.state = "stats"
+                        # state stays "menu" — stats runs as a separate window
                 elif self.state == "stats":
                     if self._back_button_rect.collidepoint(event.pos):
                         self._close_stats_window()
@@ -436,10 +437,10 @@ class GameManager:
                 world_width=WORLD_WIDTH,
             )
             if enemy.rect.colliderect(self.player.rect):
-                self.player.on_hit(1)
+                self.player.on_hit(enemy.contact_damage)
                 self._play_sound("hurt")
                 self._on_player_damaged(now)
-                self.logger.record_event("damage_taken", 1, now)
+                self.logger.record_event("damage_taken", enemy.contact_damage, now)
                 self.logger.record_event("ability_loss", "hit", now)
                 enemy.is_alive = False
             if enemy.rect.top > WINDOW_HEIGHT + 120:
@@ -765,8 +766,8 @@ class GameManager:
         self._damage_flash_until_ms = now + 320
         self._shake_until_ms = now + 380
         self._shake_mag = 7
-        # Bounce the heart that was just lost
-        lost_idx = self.player.health  # 0-based index of the heart that just broke
+        # Bounce the heart that was just lost/damaged (floor = index of changed heart)
+        lost_idx = int(math.floor(self.player.health))
         if 0 <= lost_idx < 5:
             self._heart_bounce[lost_idx] = -8.0
             self._heart_bounce_timer[lost_idx] = now
@@ -2340,18 +2341,23 @@ class GameManager:
         filled: bool,
         alpha: int = 255,
         bounce_offset: float = 0.0,
+        half: bool = False,
     ) -> None:
-        """Draw a single heart shape at (cx, cy)."""
+        """Draw a single heart shape at (cx, cy). half=True draws a half-filled heart."""
         cy_draw = int(cy + bounce_offset)
         r = max(1, size // 4)
 
         if filled:
-            body_col   = (220, 55,  75)
-            shine_col  = (255, 130, 145, 140)
+            body_col    = (220, 55,  75)
+            shine_col   = (255, 130, 145, 140)
+            outline_col = (255, 100, 120)
+        elif half:
+            body_col    = (220, 55,  75)
+            shine_col   = (255, 130, 145, 140)
             outline_col = (255, 100, 120)
         else:
-            body_col   = (38, 28, 40)
-            shine_col  = (0, 0, 0, 0)
+            body_col    = (38, 28, 40)
+            shine_col   = (0, 0, 0, 0)
             outline_col = (80, 55, 68)
 
         s = pygame.Surface((size, size), pygame.SRCALPHA)
@@ -2375,18 +2381,33 @@ class GameManager:
         pygame.draw.circle(s, outline_col, rc, r, 1)
         pygame.draw.polygon(s, outline_col, pts, 1)
 
-        # Shine dot (filled hearts only)
-        if filled:
+        # Shine dot (filled/half hearts only)
+        if filled or half:
             sh = pygame.Surface((size, size), pygame.SRCALPHA)
             pygame.draw.circle(sh, shine_col, (size // 4 - 1, size // 3 - 2), max(1, r - 2))
             s.blit(sh, (0, 0))
+
+        # For half heart: mask out the right side
+        if half:
+            mask = pygame.Surface((size, size), pygame.SRCALPHA)
+            mask.fill((0, 0, 0, 0))
+            pygame.draw.rect(mask, (0, 0, 0, 255), (size // 2, 0, size, size))
+            s.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_SUB)
+            # Draw empty right side
+            empty_col = (38, 28, 40)
+            pygame.draw.circle(s, empty_col, rc, r)
+            pygame.draw.polygon(s, empty_col, [
+                (size // 2, size // 3),
+                (size,      size // 3),
+                (size // 2, size - 2),
+            ])
+            pygame.draw.circle(s, (80, 55, 68), rc, r, 1)
 
         s.set_alpha(alpha)
         surface.blit(s, (cx - size // 2, cy_draw - size // 2))
 
     def _draw_heart_hud(self, now: int) -> None:
         """Draw individual heart icons for each HP slot (top-left corner)."""
-        from .settings import PLAYER_MAX_HEALTH
         heart_size  = 22
         gap         = 6
         total_w     = PLAYER_MAX_HEALTH * heart_size + (PLAYER_MAX_HEALTH - 1) * gap
@@ -2402,7 +2423,9 @@ class GameManager:
         self.screen.blit(panel, (4, 4))
 
         for i in range(PLAYER_MAX_HEALTH):
-            filled = i < self.player.health
+            hp       = self.player.health
+            filled   = i < math.floor(hp)
+            half     = (not filled) and (i == math.floor(hp)) and (hp % 1 >= 0.1)
             cx = 4 + panel_pad_x + i * (heart_size + gap) + heart_size // 2
             cy = 4 + panel_pad_y + heart_size // 2
 
@@ -2418,7 +2441,7 @@ class GameManager:
 
             # Pulse glow on the last remaining heart when low on HP
             alpha = 255
-            if filled and self.player.health == 1:
+            if (filled or half) and self.player.health <= 1.0:
                 pulse = 0.55 + 0.45 * abs(math.sin(now * 0.006))
                 alpha = int(180 + 75 * pulse)
 
@@ -2426,6 +2449,7 @@ class GameManager:
                 self.screen, cx, cy,
                 size=heart_size,
                 filled=filled,
+                half=half,
                 alpha=alpha,
                 bounce_offset=self._heart_bounce[i],
             )
@@ -3591,7 +3615,7 @@ class GameManager:
     # ── Boss helpers ──────────────────────────────────────────────────────────
 
     def _spawn_boss(self) -> None:
-        """Create the Queen Bee boss with escort insects (up to 5 total), recurring every 50 kills."""
+        """Create the Queen Bee boss with escort insects (up to 5 total), recurring every 25 kills."""
         self._boss_spawned = True
         self._next_boss_threshold += BOSS_SPAWN_THRESHOLD  # schedule next wave
         ox = self.player.rect.centerx + random.choice([-1, 1]) * 600
@@ -3599,6 +3623,7 @@ class GameManager:
         oy = self._ground_top_at(ox) - QueenBeeBoss.BOSS_HEIGHT
         self.boss = QueenBeeBoss(ox, oy)
         self._boss_announce_until_ms = pygame.time.get_ticks() + 3500
+        self._play_sound("boss_spawn", volume=0.7)
         # Keep at most 2 existing enemies, then fill up to 5 with fresh escort insects
         self.enemies = self.enemies[:2]
         escort_count = random.randint(3, 5) - len(self.enemies)
@@ -3625,6 +3650,7 @@ class GameManager:
             # Shake screen slightly on attack
             self._shake_until_ms = now + 200
             self._shake_mag = 4
+            self._play_sound("boss_attack", volume=0.55)
 
         # Update stingers and check player collision
         for st in self._boss_stingers:
@@ -3648,7 +3674,8 @@ class GameManager:
         )
         self._shake_until_ms = now + 700
         self._shake_mag = 14
-        self._hud_hint = ("♛ QUEEN BEE DEFEATED! ♛", now + 4000, (255, 215, 0))
+        self._play_sound("boss_death", volume=0.75)
+        self._hud_hint = (" QUEEN BEE DEFEATED! ", now + 4000, (255, 215, 0))
         self._boss_stingers.clear()
         # Resume normal enemy spawning after boss is dead
         self._boss_spawned = False
@@ -3729,13 +3756,16 @@ class GameManager:
 
         sound_dir = Path(__file__).resolve().parent.parent / "assets" / "sounds"
         files = {
-            "star":      "star.mp3",
-            "fire":      "fire.mp3",
-            "ice":       "ice.mp3",
-            "sword":     "sword.mp3",
-            "snatch":    "snatch.mp3",
-            "hurt":      "hurt.mp3",
-            "footstep":  "footstep.mp3",
+            "star":         "star.mp3",
+            "fire":         "fire.mp3",
+            "ice":          "ice.mp3",
+            "sword":        "sword.mp3",
+            "snatch":       "snatch.mp3",
+            "hurt":         "hurt.mp3",
+            "footstep":     "footstep.mp3",
+            "boss_spawn":   "boss_spawn.wav",
+            "boss_death":   "boss_death.wav",
+            "boss_attack":  "boss_attack.wav",
         }
 
         loaded: dict[str, pygame.mixer.Sound] = {}

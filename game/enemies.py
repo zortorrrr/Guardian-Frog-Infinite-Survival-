@@ -19,6 +19,17 @@ from .settings import (
 )
 
 
+
+# ── Per-type combat stats ──────────────────────────────────────────────────────
+#   speed_mult  : multiplier on top of ENEMY_BASE_SPEED
+#   contact_dmg : HP removed from player on touch (float allowed)
+ENEMY_STATS: dict[str, dict] = {
+    "fire_wasp":    {"speed_mult": 1.3,  "contact_dmg": 0.5},   # fast, moderate
+    "ice_beetle":   {"speed_mult": 0.75, "contact_dmg": 1.0},   # slow, hard hit
+    "sword_mantis": {"speed_mult": 1.5,  "contact_dmg": 0.25},  # very fast, light
+}
+
+
 class InsectEnemy(Entity):
     _sprite_cache: dict[str, list[pygame.Surface]] = {}
 
@@ -33,7 +44,15 @@ class InsectEnemy(Entity):
         self.animation_frame = 0
         self.animation_timer_ms = 0
         self.sprite_size = (46, 46)
-        self.speed_multiplier = speed_multiplier
+
+        stats = ENEMY_STATS.get(enemy_type, {"speed_mult": 1.0, "contact_dmg": 1.0})
+        self.contact_damage: float = stats["contact_dmg"]
+        # Type speed stacks on top of the wave speed_multiplier
+        self.speed_multiplier = speed_multiplier * stats["speed_mult"]
+
+        # 1% chance to be a special flying variant
+        self.is_flying: bool = random.random() < 0.25
+        self._fly_phase: float = random.uniform(0, 6.28)  # bobbing offset
 
         if not InsectEnemy._sprite_cache:
             InsectEnemy._sprite_cache = self._load_sprite_cache()
@@ -47,6 +66,17 @@ class InsectEnemy(Entity):
     ) -> None:
         direction = -1 if player_rect.centerx < self.rect.centerx else 1
         self.facing = direction
+
+        # ── Flying special variant: ignore gravity, float toward player ────────
+        if self.is_flying:
+            self._fly_phase += 0.04
+            base = ENEMY_BASE_SPEED * self.speed_multiplier
+            self.rect.x += int(direction * base)
+            target_y = player_rect.centery - 30 + math.sin(self._fly_phase) * 18
+            self.rect.y += int((target_y - self.rect.y) * 0.06)
+            self.rect.x = max(0, min(world_width - self.rect.width, self.rect.x))
+            self._update_animation()
+            return
         base = ENEMY_BASE_SPEED * self.speed_multiplier
         speed = base * (ENEMY_AIR_SPEED_MULTIPLIER if not self.is_grounded else 1.0)
         self.velocity_x = direction * speed
@@ -157,6 +187,21 @@ class InsectEnemy(Entity):
 
     def draw(self, surface: pygame.Surface, camera_x: int = 0) -> None:
         draw_rect = self.rect.move(-camera_x, 0)
+
+        # Flying special variant: pulsing rainbow outline
+        if self.is_flying:
+            now = pygame.time.get_ticks()
+            t = now * 0.004
+            glow_col = (
+                int(127 + 127 * math.sin(t)),
+                int(127 + 127 * math.sin(t + 2.09)),
+                int(127 + 127 * math.sin(t + 4.19)),
+            )
+            glow_r = draw_rect.inflate(10, 10)
+            glow_surf = pygame.Surface((glow_r.width, glow_r.height), pygame.SRCALPHA)
+            pygame.draw.ellipse(glow_surf, (*glow_col, 90), glow_surf.get_rect())
+            surface.blit(glow_surf, glow_r.topleft)
+
         sprite = self._get_current_sprite()
         if sprite is None:
             pygame.draw.rect(surface, COLOR_BY_ENEMY[self.enemy_type], draw_rect, border_radius=6)

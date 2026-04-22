@@ -41,7 +41,7 @@ class Player(Entity):
 
     def __init__(self, x: int, y: int) -> None:
         super().__init__(rect=pygame.Rect(x, y, 26, 26))
-        self.health = PLAYER_MAX_HEALTH
+        self.health: float = float(PLAYER_MAX_HEALTH)
         self.current_ability = "star_spit"
         self.held_enemy_type: str | None = None   # Enemy captured in mouth (not yet swallowed)
         self.is_grounded = False
@@ -125,7 +125,7 @@ class Player(Entity):
             self.velocity_x = move_speed
             self.facing = 1
 
-        self.is_hovering = bool(pressed[pygame.K_SPACE] and self.velocity_y > 0)
+        self.is_hovering = bool((pressed[pygame.K_w] or pressed[pygame.K_UP]) and self.velocity_y > 0)
         gravity_scale = PLAYER_HOVER_GRAVITY_SCALE if self.is_hovering else 1.0
         self.apply_gravity(gravity_scale=gravity_scale)
 
@@ -202,7 +202,7 @@ class Player(Entity):
         self.aura_color = None
         return old
 
-    def on_hit(self, damage: int = 1) -> None:
+    def on_hit(self, damage: float = 1.0) -> None:
         self.health -= damage
         self.current_ability = "star_spit"
         self.held_enemy_type = None
