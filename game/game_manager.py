@@ -7,6 +7,7 @@ import random
 import pygame
 
 from .data_logger import DataLogger
+from .pixel_font import PixelFont
 from .enemies import InsectEnemy, QueenBeeBoss, spawn_enemy_for_time
 from .entities import Player
 from .projectiles import BossStinger, Projectile, SnowWall
@@ -73,6 +74,9 @@ class GameManager:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("consolas", 24)
         self.small_font = pygame.font.SysFont("consolas", 18)
+        self.pf_large  = PixelFont(scale=4)   # 20×28 px
+        self.pf_medium = PixelFont(scale=3)   # 15×21 px
+        self.pf_small  = PixelFont(scale=2)   # 10×14 px
         self.camera_x = 0
         self.state = "menu"
         self._create_menu_buttons()
@@ -572,6 +576,14 @@ class GameManager:
         """Down key: swallow the held enemy and gain its ability."""
         if self.player.held_enemy_type is None:
             return
+        # ── Must discard current power before gaining a new one ───────────────
+        if self.player.current_ability != "star_spit":
+            self._hud_hint = (
+                f"Press Q to discard  [{self.player.current_ability.replace('_',' ').upper()}]  first!",
+                now + 2200,
+                (255, 140, 40),
+            )
+            return
         ability = ABILITY_BY_ENEMY.get(self.player.held_enemy_type, "none")
         self.player.current_ability = ability
         self.player.aura_color = COLOR_BY_ENEMY.get(self.player.held_enemy_type)
@@ -949,9 +961,10 @@ class GameManager:
             sy = int(pop["y"])
             if -30 <= sx <= WINDOW_WIDTH + 30 and -30 <= sy <= WINDOW_HEIGHT + 30:
                 color = pop.get("color", (255, 235, 80))
-                surf = self.small_font.render(pop["text"], True, color)
-                surf.set_alpha(int(alpha * 255))
-                self.screen.blit(surf, (sx - surf.get_width() // 2, sy))
+                _ptw = self.pf_medium.text_width(pop["text"])
+                self.pf_medium.draw(self.screen, pop["text"],
+                                    sx - _ptw//2, sy,
+                                    color=color, shadow=(20,20,20))
 
     def _draw_damage_flash(self, now: int) -> None:
         if now >= self._damage_flash_until_ms:
@@ -979,15 +992,11 @@ class GameManager:
             self._hud_hint = None
             return
         progress = min(1.0, (expire_ms - now) / 600.0)
-        alpha = int(255 * progress)
-        # Pulsing scale
-        pulse = 1.0 + 0.05 * math.sin(now * 0.012)
-        hint_surf = self.font.render(text, True, color)
-        w = int(hint_surf.get_width() * pulse)
-        h = int(hint_surf.get_height() * pulse)
-        scaled = pygame.transform.smoothscale(hint_surf, (w, h))
-        scaled.set_alpha(alpha)
-        self.screen.blit(scaled, (WINDOW_WIDTH // 2 - w // 2, WINDOW_HEIGHT // 2 - 80))
+        _tw = self.pf_medium.text_width(text.upper())
+        self.pf_medium.draw(self.screen, text.upper(),
+                            WINDOW_WIDTH//2 - _tw//2,
+                            WINDOW_HEIGHT//2 - 80,
+                            color=color, shadow=(10,10,20))
 
     # ══════════════════════════════════════════════════════════════════════════
     #  Background drawing
@@ -2236,68 +2245,48 @@ class GameManager:
         # ── LEFT HALF — Kill / Score ─────────────────────────────────────────
         left_cx = panel_x + half_w // 2
 
-        sc_lbl = self.small_font.render("SCORE", True, (88, 98, 148))
-        self.screen.blit(sc_lbl, sc_lbl.get_rect(midtop=(left_cx, panel_y + 6)))
-
-        sc_num_font = pygame.font.SysFont("consolas", 26, bold=True)
-        sc_num = sc_num_font.render(str(self.enemy_count), True, (235, 240, 255))
-        self.screen.blit(sc_num, sc_num.get_rect(midtop=(left_cx, panel_y + 22)))
+        self.pf_small.draw_centered(self.screen,"1UP",left_cx,panel_y+4,
+                                    color=(255,55,55),shadow=(80,0,0))
+        self.pf_medium.draw_centered(self.screen,f"{self.enemy_count:06d}",
+                                     left_cx,panel_y+16,
+                                     color=(255,255,255),shadow=(50,50,70))
 
         # ── RIGHT HALF — Ability Power Badge ─────────────────────────────────
         right_cx = panel_x + half_w + half_w // 2
 
-        logo_size = 36
-        logo_cx   = panel_x + half_w + 8 + logo_size // 2
-        logo_cy   = panel_y + panel_h // 2
-
-        # Pulsing glow behind the logo circle
-        glow_r = logo_size // 2 + 5
-        pulse_t = 0.5 + 0.5 * abs(math.sin(now * 0.004))
-        glow_s = pygame.Surface((glow_r * 2, glow_r * 2), pygame.SRCALPHA)
-        pygame.draw.circle(glow_s, (*ability_color, int(45 * pulse_t)),
-                           (glow_r, glow_r), glow_r)
-        self.screen.blit(glow_s, (logo_cx - glow_r, logo_cy - glow_r))
-
-        # Dark disc + tinted ring
-        pygame.draw.circle(self.screen, (10, 12, 26), (logo_cx, logo_cy), logo_size // 2)
-        pygame.draw.circle(self.screen, (*ability_color, 90), (logo_cx, logo_cy),
-                           logo_size // 2, 2)
-
-        # Procedural ability logo drawn inside the disc
-        self._draw_ability_logo(self.screen, logo_cx, logo_cy, ability, logo_size - 8, now)
-
-        # "POWER" micro-label + ability name stacked to the right of the disc
-        text_x = logo_cx + logo_size // 2 + 5
-        pw_lbl = self.small_font.render("POWER", True, (88, 98, 148))
-        self.screen.blit(pw_lbl, (text_x, panel_y + 8))
-        ab_surf = self.small_font.render(ability_name, True, ability_color)
-        self.screen.blit(ab_surf, (text_x, panel_y + 24))
+        _bs=34; _lcx=panel_x+half_w+10+_bs//2; _lcy=panel_y+panel_h//2
+        _bx_=_lcx-_bs//2; _by_=_lcy-_bs//2
+        pygame.draw.rect(self.screen,(8,8,20),(_bx_,_by_,_bs,_bs))
+        pygame.draw.rect(self.screen,ability_color,(_bx_,_by_,_bs,_bs),2)
+        for _d in[(0,0),(_bs-1,0),(0,_bs-1),(_bs-1,_bs-1)]:
+            self.screen.fill(ability_color,(_bx_+_d[0],_by_+_d[1],1,1))
+        self._draw_ability_logo(self.screen,_lcx,_lcy,ability,_bs-8,now)
+        _tx=_bx_+_bs+6
+        self.pf_small.draw(self.screen,"POWER",_tx,panel_y+6,color=(60,75,128))
+        self.pf_small.draw(self.screen,ability_name,_tx,panel_y+16,
+                           color=ability_color,shadow=(20,20,40))
 
         # ── Held-enemy indicator (bottom-center) ──────────────────────────────
         if self.player.held_enemy_type is not None:
             pulse = 0.7 + 0.3 * abs(math.sin(now * 0.006))
             enemy_col = COLOR_BY_ENEMY.get(self.player.held_enemy_type, (200, 240, 160))
             ec = tuple(int(c * pulse) for c in enemy_col)
-            held_text = self.small_font.render(
-                f"Holding: {self.player.held_enemy_type.replace('_', ' ').title()}   "
-                f"J=Spit ★   ↓=Swallow",
-                True, ec,
-            )
-            held_rect = held_text.get_rect(midbottom=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 10))
-            bg = pygame.Surface((held_rect.width + 20, held_rect.height + 8), pygame.SRCALPHA)
-            bg.fill((0, 0, 0, int(160 * pulse)))
-            self.screen.blit(bg, (held_rect.left - 10, held_rect.top - 4))
-            self.screen.blit(held_text, held_rect)
+            _htxt = f"HOLD:{self.player.held_enemy_type.replace(chr(95),chr(32)).upper()} J=SPIT DN=SWALLOW"
+            _htw  = self.pf_small.text_width(_htxt)
+            self.pf_small.draw(self.screen, _htxt,
+                               WINDOW_WIDTH//2 - _htw//2,
+                               WINDOW_HEIGHT - self.pf_small.char_h - 12,
+                               color=ec, shadow=(10,10,10))
         elif self.player.current_ability == "star_spit":
             # No ability and nothing held — guide player to snatch
             pulse = 0.55 + 0.45 * abs(math.sin(now * 0.004))
             lock_color = (int(255 * pulse), int(210 * pulse), int(60 * pulse))
-            lock_text = self.small_font.render("Press J to snatch an enemy!", True, lock_color)
-            lock_rect = lock_text.get_rect(midbottom=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 14))
-            bg = pygame.Surface((lock_rect.width + 16, lock_rect.height + 8), pygame.SRCALPHA)
-            bg.fill((0, 0, 0, int(140 * pulse)))
-            self.screen.blit(bg, (lock_rect.left - 8, lock_rect.top - 4))
-            self.screen.blit(lock_text, lock_rect)
+            _ltxt = "J = SNATCH ENEMY"
+            _ltw  = self.pf_small.text_width(_ltxt)
+            self.pf_small.draw(self.screen, _ltxt,
+                               WINDOW_WIDTH//2 - _ltw//2,
+                               WINDOW_HEIGHT - self.pf_small.char_h - 14,
+                               color=lock_color, shadow=(10,10,10))
 
         # ── Combo display (bottom-left area) ─────────────────────────────────
         if self._combo_count >= 3 and now <= self._combo_deadline_ms:
@@ -2313,12 +2302,9 @@ class GameManager:
             else:
                 c_col = (255, 230, 70)
                 label = f"COMBO x{self._combo_count}"
-            combo_surf = self.font.render(label, True, c_col)
-            w = int(combo_surf.get_width() * combo_scale)
-            h = int(combo_surf.get_height() * combo_scale)
-            scaled = pygame.transform.smoothscale(combo_surf, (w, h))
-            scaled.set_alpha(combo_alpha)
-            self.screen.blit(scaled, (14, WINDOW_HEIGHT - 90 - h))
+            self.pf_medium.draw(self.screen, label, 14,
+                                WINDOW_HEIGHT - 90 - self.pf_medium.char_h,
+                                color=c_col, shadow=(30,15,0))
 
         # ══ TOP-RIGHT PANEL — time / difficulty / enemy count ════════════════
         self._draw_top_right_panel(now)
@@ -2862,11 +2848,10 @@ class GameManager:
         pygame.draw.rect(self.screen, (210, 228, 255), (ic_x + 6, ic_y + 6, 2, 2))
 
         # Time digits
-        time_surf = self.font.render(time_str, True, (175, 210, 255))
-        self.screen.blit(time_surf, (label_x + 18, row_y + 2))
-
-        lbl = self.small_font.render("TIME", True, (55, 75, 125))
-        self.screen.blit(lbl, (panel_x + panel_w - pad_x - lbl.get_width(), row_y + 8))
+        self.pf_medium.draw(self.screen,time_str,label_x+18,row_y+2,
+                            color=(175,210,255),shadow=(20,40,80))
+        self.pf_small.draw_right(self.screen,"TIME",
+                                  panel_x+panel_w-pad_x,row_y+8,color=(55,75,125))
 
         row_y += ROW_TIME
         self._hud_sep_pixel(panel_x + 8, row_y, panel_w - 16)
@@ -2887,11 +2872,10 @@ class GameManager:
             pygame.draw.rect(self.screen, (38, 42, 68),
                              (sb_x + bi * 6, sb_y + (10 - bh), 4, bh), width=1)
 
-        diff_lbl = self.small_font.render("DIFFICULTY", True, (88, 98, 152))
-        pct_col  = (min(255, int(100 + 155 * progress)), max(50, int(220 - 165 * progress)), 70)
-        pct_surf = self.small_font.render(f"{int(progress * 100)}%", True, pct_col)
-        self.screen.blit(diff_lbl, (label_x + 22, row_y))
-        self.screen.blit(pct_surf, (panel_x + panel_w - pad_x - pct_surf.get_width(), row_y))
+        pct_col=(min(255,int(100+155*progress)),max(50,int(220-165*progress)),70)
+        self.pf_small.draw(self.screen,"DIFFICULTY",label_x+22,row_y+1,color=(88,98,152))
+        self.pf_small.draw_right(self.screen,f"{int(progress*100)}%",
+                                  panel_x+panel_w-pad_x,row_y+1,color=pct_col)
         row_y += 14
 
         # ── 8-bit segmented block bar ─────────────────────────────────────────
@@ -2935,17 +2919,15 @@ class GameManager:
         for tx in (sk_cx - 4, sk_cx - 1, sk_cx + 2, sk_cx + 5):
             pygame.draw.rect(self.screen, (16, 18, 36), (tx, sk_cy + 6, 2, 4))
 
-        kill_font = pygame.font.SysFont("consolas", 26, bold=True)
-        kill_surf = kill_font.render(str(self.enemy_count), True, (220, 225, 255))
-        self.screen.blit(kill_surf, (label_x + 22, row_y))
-
-        def_lbl = self.small_font.render("DEFEATED", True, (62, 72, 125))
-        self.screen.blit(def_lbl,
-                         (panel_x + panel_w - pad_x - def_lbl.get_width(),
-                          row_y + kill_surf.get_height() - def_lbl.get_height()))
+        self.pf_large.draw(self.screen,str(self.enemy_count),
+                           label_x+22,row_y,color=(220,225,255),shadow=(30,30,60))
+        _kh=self.pf_large.char_h
+        self.pf_small.draw_right(self.screen,"DEFEATED",
+                                  panel_x+panel_w-pad_x,
+                                  row_y+_kh-self.pf_small.char_h,color=(62,72,125))
 
         # Boss threshold — 8-bit segmented mini-bar
-        bbar_y = row_y + kill_surf.get_height() + 3
+        bbar_y = row_y + _kh + 3
         bbar_w = panel_w - pad_x * 2
         B_SEGS  = 12
         bseg_w  = (bbar_w - (B_SEGS - 1)) // B_SEGS
@@ -2977,10 +2959,10 @@ class GameManager:
 
             boss_lbl_col = (200, 150, 255) if boss_progress < 0.8 else (
                 255, int(200 * (0.5 + 0.5 * abs(math.sin(now * 0.007)))), 50)
-            boss_lbl = self.small_font.render(
-                f"{self.enemy_count}/{self._next_boss_threshold}", True, boss_lbl_col)
-            self.screen.blit(boss_lbl, (panel_x + panel_w - pad_x - boss_lbl.get_width(),
-                                        bbar_y + bseg_h + 1))
+            self.pf_small.draw_right(self.screen,
+                                      f"{self.enemy_count}/{self._next_boss_threshold}",
+                                      panel_x+panel_w-pad_x,bbar_y+bseg_h+2,
+                                      color=boss_lbl_col)
 
         row_y += ROW_KILLS
 

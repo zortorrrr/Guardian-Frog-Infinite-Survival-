@@ -99,30 +99,81 @@ class Projectile:
                 (draw_rect.left, draw_rect.centery),
             ])
         elif self.ability == "star_spit":
-            # Outer glow
-            glow_r = draw_rect.width // 2 + 8
-            glow_surf = pygame.Surface((glow_r * 2, glow_r * 2), pygame.SRCALPHA)
-            pygame.draw.circle(glow_surf, (255, 235, 80, 55), (glow_r, glow_r), glow_r)
-            surface.blit(glow_surf, (draw_rect.centerx - glow_r, draw_rect.centery - glow_r))
-            # Spinning octagon
-            import math as _math
-            spin = (pygame.time.get_ticks() * 0.004) % (_math.pi * 2)
-            r_outer = draw_rect.width // 2
-            r_inner = r_outer * 0.55
+            # ── 8-bit pixel star — 7×7 art-px grid, S=5 ──────────────────────
+            S   = 5
+            now = pygame.time.get_ticks()
             cx, cy = draw_rect.center
-            pts_outer = []
-            pts_inner = []
-            for i in range(8):
-                a = spin + i * (_math.pi / 4)
-                pts_outer.append((cx + _math.cos(a) * r_outer, cy + _math.sin(a) * r_outer))
-                pts_inner.append((cx + _math.cos(a + _math.pi/8) * r_inner,
-                                   cy + _math.sin(a + _math.pi/8) * r_inner))
-            star_pts = []
-            for o, i in zip(pts_outer, pts_inner):
-                star_pts.append(o)
-                star_pts.append(i)
-            pygame.draw.polygon(surface, color, star_pts)
-            pygame.draw.polygon(surface, (255, 255, 210), star_pts, width=2)
+            # spin: rotate pixel grid each 120ms (4 frames = 480ms full)
+            frame = (now // 120) % 4
+
+            # 4-frame rotation: 0=normal, 1=45°, 2=horiz, 3=45° other
+            STAR_FRAMES = [
+                # frame 0 — standard 5-pt star shape
+                ["..X..",
+                 ".XXX.",
+                 "XXXXX",
+                 ".XXX.",
+                 "..X.."],
+                # frame 1 — rotated ~22°
+                ["..XX.",
+                 ".XXX.",
+                 "XXXXX",
+                 ".XXX.",
+                 ".XX.."],
+                # frame 2 — horizontal diamond
+                ["..X..",
+                 ".XXX.",
+                 "XXXXX",
+                 ".XXX.",
+                 "..X.."],
+                # frame 3 — squished
+                [".XXX.",
+                 "XXXXX",
+                 "XXXXX",
+                 "XXXXX",
+                 ".XXX."],
+            ]
+            grid = STAR_FRAMES[frame]
+            rows = len(grid)
+            cols = len(grid[0])
+            ox   = cx - cols * S // 2
+            oy   = cy - rows * S // 2
+
+            # colour: bright yellow core → gold → dark outline
+            STAR_COLS = [
+                (255, 255, 120),  # row 0 top
+                (255, 235,  60),  # row 1
+                (255, 210,  20),  # row 2 centre
+                (235, 175,  10),  # row 3
+                (200, 130,   5),  # row 4 bottom
+            ]
+            SHINE = (255, 255, 200)
+            OUTL  = (80, 50, 0)
+
+            for ry, row in enumerate(grid):
+                for rx, ch in enumerate(row):
+                    if ch == 'X':
+                        col = STAR_COLS[ry]
+                        pygame.draw.rect(surface, col, (ox+rx*S, oy+ry*S, S, S))
+                        # 1-px dark outline (left and top edges of each block)
+                        if rx == 0 or grid[ry][rx-1] != 'X':
+                            pygame.draw.rect(surface, OUTL, (ox+rx*S, oy+ry*S, 1, S))
+                        if ry == 0 or grid[ry-1][rx] != 'X':
+                            pygame.draw.rect(surface, OUTL, (ox+rx*S, oy+ry*S, S, 1))
+
+            # shine pixel (top-left of centre mass)
+            if frame in (0,2):
+                pygame.draw.rect(surface, SHINE, (cx-S//2, cy-S, S, S))
+
+            # trailing pixel trail (4 dots behind based on direction)
+            trail_col = (255, 200, 40)
+            for ti in range(1, 4):
+                tx = cx - self.direction * ti * S * 2
+                ty = cy
+                alpha = 180 - ti * 50
+                ts = pygame.Surface((S, S), pygame.SRCALPHA)
+                ts.fill((*trail_col, alpha))
+                surface.blit(ts, (tx - S//2, ty - S//2))
         else:
             pygame.draw.rect(surface, color, draw_rect, border_radius=4)
 

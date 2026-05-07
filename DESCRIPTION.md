@@ -23,7 +23,7 @@ The frog is a Kirby-inspired character who can:
 - **Move and multi-jump** (up to 20 jumps with decaying velocity per jump)
 - **Hover** by holding the jump key mid-air, greatly reducing gravity
 - **Snatch** a nearby enemy with its tongue (`J` key) and hold it in its mouth
-- **Swallow** the held enemy (`↓`) to absorb its ability
+- **Swallow** the held enemy (`S/DOWN`) to absorb its ability
 - **Use abilities** (`K`) — flamethrower, snowfall (summons a snow wall), or sword swing
 - **Spit a star** (`J` while enemy is held) to deal direct damage without gaining the power
 - **Discard** the current ability (`Q`), which launches it as a spinning projectile

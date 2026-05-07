@@ -1,7 +1,7 @@
 # Guardian Frog 🐸
 
 A 2D side-scrolling action game built with Python and Pygame.  
-Play as a Kirby-inspired frog who snatches insect enemies, swallows their powers, and survives endless waves — including a repeating Queen Bee boss battle.
+Play as  frog who snatches insect enemies, swallows their powers, and survives endless waves — including a repeating Queen Bee boss battle.
 
 ---
 
@@ -71,12 +71,12 @@ python show_stats.py
 
 | Action | Key(s) |
 |--------|--------|
-| Move left / right | `A` / `D` or `←` / `→` |
-| Jump (multi-jump) | `W` or `↑` |
-| Hover | Hold `Space` |
+| Move left / right | `A` / `D` or `Left` / `Right` |
+| Jump (multi-jump) | `W` or `UP` |
+| Hover | Hold `W or UP` |
 | Snatch enemy | `J` (no enemy held) |
 | Spit star ★ | `J` (enemy held in mouth) |
-| Swallow power | `↓ Down` (enemy held in mouth) |
+| Swallow power | `S or Down` (enemy held in mouth) |
 | Use ability | `K` (after swallowing) |
 | Hold for flamethrower | Hold `K` (fire ability only) |
 | Discard ability | `Q` |
