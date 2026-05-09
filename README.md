@@ -131,7 +131,7 @@ CSV log files are written automatically to the `logs/` directory during gameplay
 - **Multi-jump & hover** — up to 20 jumps with decaying velocity; hold the jump key in the air to hover and slow your fall
 - **Three enemy archetypes** — Fire Wasp (fast, moderate damage), Ice Beetle (slow, hard hit), Sword Mantis (very fast, light damage), each with animated sprites
 - **Flying variants** — 25% of enemies ignore gravity and float directly toward the player
-- **Repeating Queen Bee boss** — spawns every 25 kills, floats sinusoidally, fires spread stingers, and has 10 HP
+- **Repeating Queen Bee boss** — spawns every 25 kills, floats sinusoidally, fires spread stingers, and has 20 HP
 - **Discard mechanic** — press `Q` to launch the current ability as a spinning projectile
 - **Particle VFX** — defeat explosions, hover glow, screen shake on boss death, and combo pop-ups
 - **Animated menu** — main menu with animated fireflies, logo, and mouse-clickable buttons

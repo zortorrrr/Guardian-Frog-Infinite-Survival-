@@ -78,153 +78,141 @@ classDiagram
     direction TB
 
     class Entity {
-        +rect : pygame.Rect
-        +velocity_x : float
-        +velocity_y : float
-        +apply_gravity(gravity_scale)
-        +move()
+        <<abstract>>
+        +rect Rect
+        +velocity_x float
+        +velocity_y float
+        +is_grounded bool
+        +apply_gravity()
+        +move(solid_rects)
     }
 
     class Player {
-        +health : float
-        +current_ability : str
-        +held_enemy_type : str
-        +is_grounded : bool
-        +is_hovering : bool
-        +jump_count : int
-        +facing : int
-        +animation_state : str
-        +update(pressed, world_width, solid_rects, is_flamethrower_active) int
-        +jump(is_flamethrower_active)
-        +on_hit(amount)
-        +can_attack(now_ms, cooldown_ms) bool
-        +record_attack(now_ms)
+        +health float
+        +current_ability str
+        +held_enemy_type str
+        +facing int
+        +is_hovering bool
+        +jumps_used int
+        +snatch_tongue()
+        +swallow()
+        +discard_ability()
+        +jump()
+        +on_hit(damage)
+        +update(keys, solid_rects)
         +draw(surface, camera_x)
     }
 
     class InsectEnemy {
-        +enemy_type : str
-        +is_alive : bool
-        +is_grounded : bool
-        +is_flying : bool
-        +speed_multiplier : float
-        +contact_damage : float
-        +ai_behavior(player_rect, solid_rects, pit_rects, world_width)
+        +enemy_type str
+        +contact_damage float
+        +is_alive bool
+        +facing int
+        +animation_frame int
+        +ai_behavior(player_rect)
+        +update(player_rect, solids)
         +draw(surface, camera_x)
     }
 
     class QueenBeeBoss {
-        +hp : int
-        +max_hp : int
-        +is_alive : bool
-        +float_speed : float
-        +attack_cooldown_ms : int
-        +update(player_rect, solid_rects, now) bool
+        +hp int
+        +max_hp int
+        +float_speed float
+        +attack_cooldown_ms int
+        +is_alive bool
+        +update(player_rect, solids, now)
         +take_damage(damage, now)
         +draw(surface, camera_x)
     }
 
     class Projectile {
-        +direction : int
-        +ability : str
-        +damage : int
-        +is_discarded : bool
-        +speed : float
-        +lifetime_ms : int
+        +direction int
+        +ability str
+        +speed float
+        +damage int
+        +lifetime_ms int
+        +is_discarded bool
         +update()
-        +check_impact(enemy_rect) bool
-        +destroy() bool
+        +check_impact(enemy_rect)
+        +destroy()
         +draw(surface, camera_x)
     }
 
     class SnowWall {
-        +rect : pygame.Rect
-        +hp : int
-        +is_grounded : bool
-        +state : str
+        +rect Rect
+        +hp int
+        +state str
+        +velocity_y float
         +update(solid_rects)
         +on_hit_enemy()
-        +is_destroyed() bool
+        +is_destroyed()
         +draw(surface, camera_x)
     }
 
     class BossStinger {
-        +rect : pygame.Rect
-        +vx : float
-        +vy : float
-        +damage : int
-        +angle : float
+        +rect Rect
+        +vx float
+        +vy float
+        +damage int
+        +angle float
         +update()
-        +check_impact(rect) bool
-        +destroy() bool
+        +check_impact(rect)
+        +destroy()
         +draw(surface, camera_x)
     }
 
-    class GameManager {
-        +screen : pygame.Surface
-        +player : Player
-        +enemies : list
-        +projectiles : list
-        +snow_walls : list
-        +boss : QueenBeeBoss
-        +logger : DataLogger
-        +state : str
-        +enemy_count : int
-        +session_time : float
-        +run()
-        +_start_game()
-        +_restart_game()
-        +_spawn_enemy()
-        +_spawn_boss()
-        +_update_boss(now)
-        +_on_boss_defeated(now)
-        +_open_stats_window()
-    }
-
     class DataLogger {
-        +session_id : int
-        +buffers : dict
-        +log_files : dict
-        +record_event(event_type, value, timestamp_ms)
+        +session_id int
+        +buffers dict
+        +log_files dict
+        +record_event(type, value, ts)
         +save_to_csv()
     }
 
-    class StatsAnalyzer {
-        +logs_dir : Path
-        +_all_data : dict
-        +_sessions : dict
-        +_selected_sid : int
-        +create_dashboard(root) tk.Tk
-        +_build_summary_tab(parent)
-        +_build_graphs_tab(parent)
-        +_draw_pie(canvas, data)
-        +_draw_hist(canvas, data)
-        +_draw_line(canvas, data)
-        +_draw_bar(canvas, data)
+    class PixelFont {
+        +scale int
+        +char_w int
+        +char_h int
+        +text_width(text)
+        +draw(surface, text, x, y)
+        +draw_centered(surface, text, cx, y)
+        +draw_right(surface, text, rx, y)
+    }
+
+    class GameManager {
+        +screen Surface
+        +player Player
+        +enemies list
+        +boss QueenBeeBoss
+        +projectiles list
+        +snow_walls list
+        +boss_stingers list
+        +logger DataLogger
+        +camera_x int
+        +enemy_count int
+        +session_time float
+        +state str
+        +run()
+        +_update(dt_ms)
+        +_draw()
+        +_spawn_enemy()
+        +_handle_collisions()
     }
 
     Entity <|-- Player
     Entity <|-- InsectEnemy
     GameManager "1" *-- "1" Player
-    GameManager "1" *-- "0..*" InsectEnemy
-    GameManager "1" *-- "0..*" Projectile
-    GameManager "1" *-- "0..*" SnowWall
-    GameManager "1" *-- "0..1" QueenBeeBoss
-    GameManager "1" *-- "0..*" BossStinger
     GameManager "1" *-- "1" DataLogger
-    GameManager ..> StatsAnalyzer : launches via subprocess
-
-    class PixelFont {
-        +scale : int
-        +char_w : int
-        +char_h : int
-        +draw(surface, text, x, y, color)
-        +draw_centered(surface, text, cx, y)
-        +draw_right(surface, text, rx, y)
-        +text_width(text) int
-    }
-
-    GameManager "1" *-- "3" PixelFont : owns (small/medium/large)
+    GameManager "1" *-- "3" PixelFont
+    GameManager "1" *-- "0..1" QueenBeeBoss
+    GameManager "1" o-- "*" InsectEnemy
+    GameManager "1" o-- "*" Projectile
+    GameManager "1" o-- "*" SnowWall
+    GameManager "1" o-- "*" BossStinger
+    Player ..> Projectile : creates
+    Player ..> SnowWall : creates
+    QueenBeeBoss ..> BossStinger : creates
+    Player ..> DataLogger : logs events
 ```
 
 ---
