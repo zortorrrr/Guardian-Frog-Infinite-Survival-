@@ -245,8 +245,8 @@ class QueenBeeBoss:
 
     def __init__(self, x: int, y: int, difficulty_level: int = 0) -> None:
         self.rect = pygame.Rect(x, y, self.BOSS_WIDTH, self.BOSS_HEIGHT)
-        self.max_hp = 10
-        self.hp = 10
+        self.max_hp = 20
+        self.hp = 20
         self.is_alive = True
         self.facing = -1
         self._last_attack_ms: int = -5000   # allow first attack quickly
