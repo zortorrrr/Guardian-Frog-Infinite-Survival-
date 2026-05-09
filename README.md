@@ -1,7 +1,7 @@
 # Guardian Frog 🐸
 
 A 2D side-scrolling action game built with Python and Pygame.  
-Play as  frog who snatches insect enemies, swallows their powers, and survives endless waves — including a repeating Queen Bee boss battle.
+Play as a frog who snatches insect enemies, swallows their powers, and survives endless waves — including a repeating Queen Bee boss battle.
 
 ---
 
@@ -89,17 +89,16 @@ python show_stats.py
 guardian-frog/
 ├── main.py                  # Entry point
 ├── show_stats.py            # Standalone stats dashboard launcher
+├── bg_music.wav             # Background music (loops during gameplay)
 ├── requirements.txt
 ├── README.md
 ├── DESCRIPTION.md
-├── .gitignore
-├── LICENSE
+├── gitignore
 ├── assets/
 │   ├── frog/                # Player sprites
 │   ├── fire/                # Fire wasp sprites
 │   ├── ice/                 # Ice beetle sprites
 │   ├── sword/               # Sword mantis sprites
-│   ├── icons/               # Ability icons, heart icons
 │   ├── sounds/              # Sound effects
 │   └── menu/                # Menu background, logo, lose screen
 ├── game/
@@ -109,11 +108,11 @@ guardian-frog/
 │   ├── enemies.py           # InsectEnemy, QueenBeeBoss, spawn helper
 │   ├── projectiles.py       # Projectile, SnowWall, BossStinger
 │   ├── game_manager.py      # Main game loop and orchestration
+│   ├── pixel_font.py        # Custom 5×7 bitmap HUD font
 │   ├── data_logger.py       # CSV event logger
 │   └── stats_analyzer.py    # Tkinter statistics dashboard
-├── logs/                    # Auto-generated CSV log files (git-ignored)
+├── logs/                    # Auto-generated CSV log files
 └── screenshots/
-    ├── gameplay/
     └── visualization/
         └── VISUALIZATION.md
 ```
@@ -122,4 +121,41 @@ guardian-frog/
 
 ## Logs
 
-CSV log files are written automatically to the `logs/` directory during gameplay. They are excluded from version control via `.gitignore`.
+CSV log files are written automatically to the `logs/` directory during gameplay.
+
+---
+
+## Game Features
+
+- **Ability absorption** — snatch an enemy with your tongue, then swallow it to steal its power: flamethrower, snowfall (ice wall), or sword swing
+- **Multi-jump & hover** — up to 20 jumps with decaying velocity; hold the jump key in the air to hover and slow your fall
+- **Three enemy archetypes** — Fire Wasp (fast, moderate damage), Ice Beetle (slow, hard hit), Sword Mantis (very fast, light damage), each with animated sprites
+- **Flying variants** — 25% of enemies ignore gravity and float directly toward the player
+- **Repeating Queen Bee boss** — spawns every 25 kills, floats sinusoidally, fires spread stingers, and has 10 HP
+- **Discard mechanic** — press `Q` to launch the current ability as a spinning projectile
+- **Particle VFX** — defeat explosions, hover glow, screen shake on boss death, and combo pop-ups
+- **Animated menu** — main menu with animated fireflies, logo, and mouse-clickable buttons
+- **Live statistics dashboard** — separate Tkinter + Matplotlib window showing per-session graphs and summary stats
+- **Custom pixel font** — all HUD text rendered with a hand-authored 5×7 bitmap font (no external font files)
+
+---
+
+## Known Bugs
+
+- Background music (`bg_music.wav`) is loaded with a hardcoded relative path, so launching the game from a different working directory will cause a crash.
+
+---
+
+## Unfinished Works
+
+- Boss difficulty does not currently scale between waves — the `difficulty_level` parameter exists on `QueenBeeBoss` but is never passed from `GameManager`, so every boss encounter is identical.
+
+---
+
+## External Sources
+
+Visual & Audio Assets
+All sprite art (player frog, fire wasp, ice beetle, sword mantis, Queen Bee boss, menu backgrounds, logo), visual effects, and background music (bg_music.wav) were generated with AI assistance (Claude, Anthropic) and are original to this project. No third-party art or audio assets were used from external sources.
+
+Font
+The PixelFont class and its 5×7 bitmap glyph set were written from scratch as original code — no external font files or libraries.
