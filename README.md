@@ -155,7 +155,8 @@ python3 show_stats.py
 
 ### Visual & Audio Assets
 
-All sprite art (player frog, fire wasp, ice beetle, sword mantis, Queen Bee boss, menu backgrounds, logo), visual effects, and background music (`bg_music.wav`) were **generated with AI assistance (Claude, Anthropic)** and are original to this project. No third-party art or audio assets were sourced from external repositories.
+Player frog sprite was hand-drawn by a fellow student (used with permission).
+All other sprite art  (fire wasp, ice beetle, sword mantis, Queen Bee boss, menu backgrounds, logo) all in-game visual effect and background music (`bg_music.wav`) were **generated with AI assistance (Claude, Anthropic)** and are original to this project. No third-party art or audio assets were sourced from external repositories.
 
 ### Font
 

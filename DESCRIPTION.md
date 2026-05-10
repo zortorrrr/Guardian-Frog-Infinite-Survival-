@@ -339,7 +339,8 @@ The following changes were made compared with the original proposal (v3.0):
 
 ### Visual Assets
 
-All sprite art (player frog, fire wasp, ice beetle, sword mantis, Queen Bee boss, menu backgrounds, logo) and all in-game visual effects were **generated with AI assistance (Claude, Anthropic)** and are original to this project. No third-party art assets were sourced from external repositories.
+Player frog sprite was hand-drawn by a fellow student (used with permission).
+All other sprite art  (fire wasp, ice beetle, sword mantis, Queen Bee boss, menu backgrounds, logo) and all in-game visual effects were **generated with AI assistance (Claude, Anthropic)** and are original to this project. No third-party art assets were sourced from external repositories.
 
 ### Audio
 
