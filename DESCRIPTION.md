@@ -1,77 +1,81 @@
-# DESCRIPTION — Guardian Frog 🐸
+# Project Description — Guardian Frog 🐸
 
 ---
 
-## Overview
+## 1. Project Overview
 
-**Guardian Frog** is a 2D side-scrolling action-survival game developed in Python using Pygame. The player controls a frog character who must survive endless waves of insect enemies across a wide platforming world. The core gameplay loop revolves around the frog's unique ability to **snatch enemies with its tongue**, **swallow them to absorb their powers**, and then **unleash those powers** as special attacks. Every 25 enemy defeats, a powerful **Queen Bee boss** appears that the player must defeat to earn a score bonus and keep playing.
+- **Project Name:** Guardian Frog: Infinite Survival
 
-The project is split into two components:
+- **Brief Description:**
+  Guardian Frog is a 2D side-scrolling action-survival game developed in Python using Pygame-CE. The player controls a frog character who must survive endless waves of insect enemies across a wide horizontally-scrolling platforming world. The core gameplay loop revolves around the frog's ability to **snatch enemies with its tongue**, **swallow them to absorb their elemental powers**, and then **unleash those powers** as special attacks. Every 25 enemy defeats, a powerful **Queen Bee boss** appears as a major encounter.
 
-- **Game Component (~80%):** A fully playable Pygame-based game with animated sprites, physics, multiple enemy types, a boss fight, sound effects, and visual particle effects.
-- **Data Component (~20%):** A live statistics dashboard (Tkinter + Matplotlib) that records and visualizes per-session gameplay data including attack patterns, hover behaviour, damage taken, survival time, and ability usage.
+  The project is split into two components: a **Game Component** — a fully playable Pygame-based game with pixel-art sprites, physics, multiple enemy types, a boss fight, and visual VFX effects; and a **Data Component** — a live statistics dashboard built with Tkinter and Matplotlib that records and visualises six per-event gameplay features including attack patterns, hover behaviour, damage taken, and ability usage.
+
+- **Problem Statement:**
+  Most casual platformers aggregate data only at the end of each session (one row per game), making it nearly impossible to collect 100+ meaningful records without playing 100 separate times. Guardian Frog solves this by shifting to **per-event logging** — every individual attack, kill, hover, and damage hit is recorded as its own row, allowing a single 5-minute session to generate hundreds of statistically useful records.
+
+- **Target Users:**
+  - Course graders evaluating the OOP, game-component, and data-component criteria
+  - Casual players who enjoy short, replayable arcade-style survival challenges
+  - Students studying event-driven data collection patterns in game development
+
+- **Key Features:**
+  - 🐸 **Tongue-Snatch & Power Copy** — capture enemies with the tongue, then spit or swallow them to steal their elemental ability
+  - 🔁 **Power-Swap Gate** — must discard the current ability (Q) before swallowing a new one, adding strategic decision-making
+  - 🔥❄️⚔️ **Three Abilities** — Flamethrower (hold K), Snowfall / Snow Wall (press K), Sword Whirlwind (press K), each with pixel-art VFX
+  - 👑 **Queen Bee Boss** — spawns every 25 kills with 20 HP segments, fires aimed stingers, floats freely
+  - 💖 **Granular 4-State HP Bar** — supports quarter-unit damage (0.25 / 0.5 / 0.75 / 1.0) with distinct visual fill states per segment
+  - 🎨 **Unified 8-bit Pixel Art** — all sprites, HUD, VFX, and fonts drawn on a fixed pixel grid
+  - 📊 **Real-Time CSV Event Logger** — six event types written per-event for downstream statistical analysis and visualisation
+
+- **Screenshots:**
+
+  | Gameplay | Statistics Dashboard |
+  |---|---|
+  | ![Gameplay](./screenshots/gameplay/gameplay_01.png) | ![Dashboard](./screenshots/visualization/00_dashboard_overview.png) |
+
+  > See `screenshots/gameplay/` for in-game screenshots and `screenshots/visualization/` for all graph and dashboard screenshots.
+
+- **Proposal:** [Guardian_Frog_Proposal_v4.pdf](./Guardian_Frog_Proposal_v4.pdf)
+
+- **YouTube Presentation (~7 minutes):** *(insert YouTube link here before submission)*
+  1. Short intro and demonstration of the game and statistics dashboard
+  2. Explanation of class design and OOP usage
+  3. Explanation of statistical data and visualisation results
 
 ---
 
-## Concept
+## 2. Concept
 
 ### 2.1 Background
-This project was inspired by Kirby's copy-ability mechanic — the idea of absorbing an enemy's power and turning it against others. The problem it explores is: can a simple 2D survival game feel strategically deep when the player's toolkit is entirely determined by which enemies they choose to fight and swallow? Guardian Frog is the answer: a game where every enemy is both a threat and a potential resource, and where survival depends on reading the battlefield and choosing abilities wisely.
 
-The data component exists because player behaviour in action games is hard to reason about without evidence. By logging every attack, hover, and damage event we can answer questions like "which ability do players actually use most?" and "how does damage taken change with survival time?"
+This project exists to answer a design question: can a 2D survival game feel strategically deep when the player's entire toolkit is determined by which enemies they choose to fight and capture? Rather than giving the player a fixed weapon, Guardian Frog forces a constant decision — snatch the enemy for an instant projectile, or swallow it and copy its power for a more powerful ability at the cost of vulnerability.
+
+The data component was motivated by a real constraint in game analytics: per-session logging makes it impractical to collect enough records in a reasonable number of play sessions. By redesigning the logging architecture around individual events, a single session generates far more statistically useful data, allowing meaningful analysis of combat preference, playstyle, and difficulty experience from just a few runs.
 
 ### 2.2 Objectives
-- Build a fully playable infinite-survival platformer using only the Python standard library and Pygame
-- Implement a Kirby-style ability absorption loop that gives the player meaningful decisions each wave
+
+- Build a fully playable infinite-survival platformer using Python and Pygame-CE with no external game engine
+- Implement an ability-absorption combat loop that gives the player meaningful strategic decisions every wave
 - Design three distinct enemy archetypes and a recurring boss fight that escalate difficulty over time
-- Log six event types during gameplay and visualise them in a separate statistics dashboard (Tkinter + Matplotlib)
-- Demonstrate core OOP principles — inheritance, composition, factory functions, and class-level caching — through the project structure
-
-### Game World
-The world is a wide horizontally-scrolling level (5 000 px wide) with ground segments, platforms at varying heights, and pit hazards that deal damage and respawn the player.
-
-### Player — The Frog
-The frog is a Kirby-inspired character who can:
-- **Move** left/right with `A`/`D` or the arrow keys
-- **Multi-jump** (up to 20 jumps, `W` or `UP`, with velocity decaying each jump)
-- **Hover** by holding the jump key while airborne, greatly reducing gravity
-- **Snatch** a nearby enemy with its tongue (`J`) and hold it in its mouth
-- **Swallow** the held enemy (`S`/`DOWN`) to absorb its ability
-- **Use abilities** (`K`) — the default is a **star spit** projectile; after swallowing an enemy the ability becomes flamethrower, snowfall (summons a snow wall), or sword swing
-- **Spit a star** (`J` while an enemy is held) to deal direct damage without gaining its power
-- **Discard** the current ability (`Q`), which launches it as a spinning projectile
-
-### Enemies
-Three insect types spawn with increasing frequency and difficulty over time:
-
-| Enemy | Ability | Speed | Contact Damage |
-|---|---|---|---|
-| Fire Wasp | Flamethrower | Fast (×1.3) | 0.5 HP |
-| Ice Beetle | Snowfall | Slow (×0.75) | 1.0 HP |
-| Sword Mantis | Sword Swing | Very fast (×1.5) | 0.25 HP |
-
-A random 25% of enemies spawn as **flying variants** that ignore gravity and float directly toward the player.
-
-### Boss — Queen Bee
-After every 25 enemy defeats, the **Queen Bee** spawns. She floats sinusoidally ~180 px above the player, fires 3 spread stingers on a timed cooldown, and has 20 HP. After being defeated she disappears and the kill counter resets, making her spawn again after the next 25 kills.
-
-### Data Collection
-Six event types are logged to CSV during every session:
-
-| Event | What it records |
-|---|---|
-| `attack_type` | Which ability was used each time the player attacked |
-| `enemy_defeat` | Timestamp of each enemy killed |
-| `hover_duration` | How long (ms) the player hovered before landing |
-| `damage_taken` | Amount of damage received per hit |
-| `survival_time` | Periodic survival time snapshots (every 2 s) |
-| `ability_loss` | Whether the ability was lost by `discard` or `hit` |
-
-The **Statistics Dashboard** displays these as a session-filterable interface with a summary table and four graphs (pie chart, histogram, line chart, bar chart).
+- Log six event types during gameplay using a `DataLogger` class and visualise them in a Tkinter + Matplotlib dashboard
+- Demonstrate core OOP principles — inheritance, composition, and dependency — through a 10-class architecture
+- Render all visuals, HUD elements, and fonts using a unified 8-bit pixel-art system with a custom `PixelFont` class
 
 ---
 
-## UML Class Diagram
+## 3. UML Class Diagram
+
+The full class diagram is attached as **[UML.pdf](./UML.pdf)**.
+
+It contains **10 classes** with attributes, methods, and four relationship types:
+
+- **Inheritance** (`▲`) — `Player` and `InsectEnemy` extend `Entity`
+- **Composition** (`◆`) — `GameManager` owns `Player`, `DataLogger`, `PixelFont` (×3), `QueenBeeBoss`
+- **Aggregation** (`◇`) — `GameManager` manages `InsectEnemy[*]`, `Projectile[*]`, `SnowWall[*]`, `BossStinger[*]`
+- **Dependency** (`┄→`) — `Player` creates `Projectile`/`SnowWall`; `QueenBeeBoss` creates `BossStinger`; `Player` logs to `DataLogger`
+
+**Mermaid preview** *(renders inline on GitHub):*
 
 ```mermaid
 classDiagram
@@ -217,59 +221,84 @@ classDiagram
 
 ---
 
-## Object-Oriented Programming Implementation
+## 4. Object-Oriented Programming Implementation
 
-### Classes
+- **`Entity`** *(entities.py)* — Abstract base class for all physics objects. Provides `rect`, `velocity_x/y`, `is_grounded`, `apply_gravity()`, and `move(solid_rects)` for AABB collision resolution.
 
-| Class | File | Description |
-|---|---|---|
-| `Entity` | `entities.py` | Abstract dataclass base for all physics objects. Holds `rect`, `velocity_x`, `velocity_y` and provides `apply_gravity()` and `move()`. |
-| `Player` | `entities.py` | Extends `Entity`. Manages the frog's health, jump count, held/swallowed ability, animation state, and all input-driven actions (jump, hover, snatch, swallow, attack, discard). Uses class-level caches for sprite and icon loading. |
-| `InsectEnemy` | `enemies.py` | Extends `Entity`. Represents one of three insect types (fire wasp, ice beetle, sword mantis). Contains full ground and flying AI, pit avoidance, animated sprites, and a 25% chance to spawn as a flying variant. |
-| `QueenBeeBoss` | `enemies.py` | Standalone boss class. Floats sinusoidally above the player, fires spread stingers on a cooldown, and has 20 HP. Spawns every 25 enemy kills. |
-| `Projectile` | `projectiles.py` | Represents a player-fired attack. Handles star spit, flamethrower particle, and sword swing variants, each with different size, speed, and damage. Also handles discarded-ability spinning projectiles. |
-| `SnowWall` | `projectiles.py` | A falling ice wall summoned by the snowfall ability. Drops under gravity, collides with the ground, has HP, and damages enemies on contact. |
-| `BossStinger` | `projectiles.py` | Angled projectile fired by the Queen Bee in spread patterns. Flies in a fixed direction and deals damage on player contact. |
-| `GameManager` | `game_manager.py` | Central game orchestrator. Owns the main loop, all game objects, the level layout, particle/VFX systems, HUD rendering, sound, and the menu/game-over states. |
-| `DataLogger` | `data_logger.py` | Records six event types to in-memory buffers and flushes them to CSV on demand. Assigns each game run a unique `session_id` and handles migration of old log formats. |
-| `StatsAnalyzer` | `stats_analyzer.py` | Loads all CSVs, partitions data by session, and builds a Tkinter + Matplotlib dashboard with a session list, summary statistics table, and four graph types. |
-| `PixelFont` | `pixel_font.py` | Custom 5×7 bitmap font renderer with configurable pixel scale. Contains a hand-authored glyph dictionary and no external font file dependencies. Used throughout the HUD. |
+- **`Player`** *(entities.py)* — Extends `Entity`. Manages frog health, jump state, held/swallowed ability, and all input-driven actions: `snatch_tongue()`, `swallow()`, `discard_ability()`, `jump()`, `on_hit()`.
 
-### Design Patterns
+- **`InsectEnemy`** *(enemies.py)* — Extends `Entity`. Represents one of three insect types (fire wasp, ice beetle, sword mantis) with ground and flying AI, animated sprites, and a 25% chance to spawn as a flying variant.
 
-**Inheritance / Polymorphism** — `Entity` is the base class shared by `Player` and `InsectEnemy`. Both inherit physics logic (`apply_gravity`, `move`) and override behaviour specific to their role.
+- **`QueenBeeBoss`** *(enemies.py)* — Standalone boss class. Floats sinusoidally above the player, fires aimed stingers on cooldown, and has 20 HP. Spawns every 25 enemy kills.
 
-**Composition** — `GameManager` owns all game objects (player, enemy list, projectile list, boss, logger) and orchestrates their interactions each frame.
+- **`Projectile`** *(projectiles.py)* — Handles star spit, flamethrower particles, and sword swing projectiles. Each has its own `speed`, `damage`, `lifetime_ms`, and 8-bit pixel-art `draw()`.
 
-**Factory Function** — `spawn_enemy_for_time(survival_time_s, ...)` in `enemies.py` adjusts enemy-type probability weights based on elapsed survival time, progressively increasing the ratio of slower, harder-hitting enemies.
+- **`SnowWall`** *(projectiles.py)* — Falling ice wall summoned by the Snowfall ability. Drops under gravity, collides with platforms, and damages enemies on contact.
 
-**Class-level Caching** — `Player` and `InsectEnemy` use class-level dictionaries (`_ability_icon_cache`, `_sprite_cache`) to load image assets only once and share them across all instances.
+- **`BossStinger`** *(projectiles.py)* — Aimed projectile fired by Queen Bee in spread patterns. Travels in a fixed direction and deals damage on player contact.
 
-**Observer-like Logging** — `DataLogger` receives discrete events (`record_event`) fired by `GameManager` at key moments (attack, damage, defeat). It buffers them and flushes to CSV on game over, decoupling data collection from game logic.
+- **`DataLogger`** *(data_logger.py)* — Records six event types to in-memory buffers and flushes to CSV. Assigns a unique `session_id` per run and auto-migrates legacy log formats.
 
----
+- **`PixelFont`** *(pixel_font.py)* — Custom 5×7 bitmap font renderer. Contains a hand-authored glyph dictionary (A–Z, 0–9, symbols) with configurable pixel scale. No external font files required.
 
-## Statistical Data
+- **`GameManager`** *(game_manager.py)* — Central controller. Owns all game objects, drives the main loop, handles level layout, collision resolution, HUD rendering, and the statistics subprocess.
 
-### Recording Method
-Events are recorded by calling `DataLogger.record_event(event_type, value, timestamp_ms)` from within `GameManager` at the exact moment the event occurs. Each record stores a `session_id` (Unix timestamp of the run start), the event's `timestamp_ms` since Pygame init, the `event_type` string, and the `value`. Records are held in per-type in-memory buffers and flushed to six separate CSV files when the game ends.
+- **`StatsAnalyzer`** *(stats_analyzer.py)* — Loads CSVs, partitions by session, and builds a Tkinter + Matplotlib dashboard with a session selector, statistics table, and four graph types.
 
-### Data Features
-
-| Feature | Type | What it captures |
-|---|---|---|
-| `attack_type` | Categorical string | The ability used each time the player fires (`star_spit`, `flamethrower`, `snowfall`, `sword_swing`) — reveals ability preference |
-| `enemy_defeat` | Numeric (timestamp ms) | Millisecond timestamp of each kill — used to compute kill rate and cumulative defeats over time |
-| `hover_duration` | Numeric (ms) | How many milliseconds the player hovered before touching the ground — shows aerial playstyle |
-| `damage_taken` | Numeric (HP) | Amount of HP lost per damage event — reveals which hits are most costly |
-| `survival_time` | Numeric (seconds) | Snapshot of total survival time logged every 2 seconds — forms a timeline of session length |
-| `ability_loss` | Categorical string | Whether the current ability was lost by voluntary `discard` or by taking a `hit` — measures risk behaviour |
-
-The **Statistics Dashboard** (`StatsAnalyzer`) displays these across two tabs: a **Summary** tab with a session selector and a statistics table (mean, median, std dev, min, max, count), and a **Graphs** tab with a pie chart (attack type distribution), histogram (hover duration), line chart (cumulative enemy defeats), and bar chart (ability loss cause).
+**Design Patterns Used:**
+- **Inheritance / Polymorphism** — `Player` and `InsectEnemy` inherit physics from `Entity` and override role-specific behaviour
+- **Composition** — `GameManager` owns and orchestrates all game objects each frame
+- **Factory Function** — `spawn_enemy_for_time()` adjusts enemy-type weights based on survival time
+- **Class-level Caching** — `Player` and `InsectEnemy` share sprite/icon assets via class-level dictionaries
+- **Observer-like Logging** — `DataLogger` receives discrete events from `GameManager` and buffers them independently of game logic
 
 ---
 
-## External Sources
+## 5. Statistical Data
+
+### 5.1 Data Recording Method
+
+Data is collected via `DataLogger.record_event(event_type, value, timestamp_ms)` called from `GameManager` at the exact moment each event occurs. Each record contains four fields:
+
+| Field | Description |
+|---|---|
+| `session_id` | Unix timestamp of the run start — groups all events from one session |
+| `timestamp_ms` | Milliseconds elapsed since Pygame init |
+| `event_type` | Constant string identifier (e.g. `attack_type`, `enemy_defeat`) |
+| `value` | Event payload (string, int, or float depending on feature) |
+
+Records are held in per-type in-memory buffers and flushed to six separate CSV files under `logs/` when the game ends. Old 3-column legacy files are automatically upgraded to the 4-column schema on first load.
+
+### 5.2 Data Features
+
+| Feature | Type | What it captures | Visualisation |
+|---|---|---|---|
+| `attack_type` | Categorical | Which ability was used each time the player attacked | Pie chart |
+| `enemy_defeat` | Numeric (ms) | Timestamp of each enemy kill — used to compute cumulative defeats | Bar / line chart |
+| `hover_duration` | Numeric (ms) | Duration of each hover action before landing — shows aerial playstyle | Histogram |
+| `damage_taken` | Numeric (HP) | HP lost per hit event — reveals which enemies are most dangerous | Stats table |
+| `survival_time` | Numeric (s) | Periodic survival time snapshots (every 2 s) — forms a session timeline | Stats table |
+| `ability_loss` | Categorical | Whether ability was lost by `discard` (Q) or `hit` — measures risk behaviour | Bar chart |
+
+---
+
+## 6. Changed Proposed Features
+
+The following changes were made compared with the original proposal (v3.0):
+
+| # | Change | Reason |
+|---|---|---|
+| 1 | Added **Power-Swap Gate** — must press Q to discard before swallowing a new ability | Adds strategic depth; prevents accidental ability replacement; generates `ability_loss` discard data |
+| 2 | Added **Queen Bee boss** every 25 kills with 20 HP (originally 10 in proposal) | Breaks survival monotony; provides a clear difficulty milestone; boss HP raised to 20 to make the fight more engaging |
+| 3 | Added **Granular HP system** with 0.25 / 0.5 / 1.0 damage values and 4-state HP bar segments | Differentiates enemy lethality; makes the HP bar informative rather than a simple counter |
+| 4 | Added **`SnowWall`** and **`BossStinger`** classes (not in original proposal) | Required to implement the Snowfall ability and Queen Bee attack pattern as proper OOP classes |
+| 5 | Added **`PixelFont`** class (not in original proposal) | Replaces system font dependency; ensures 8-bit visual consistency across all platforms |
+| 6 | Added **`ability_loss`** as a 6th data feature (proposal had 5) | Enables direct comparison of voluntary vs. accidental ability loss, which is the most distinctive data insight of the Power-Swap Gate mechanic |
+| 7 | Replaced smooth VFX (ellipse/circle) with **unified 8-bit pixel-grid VFX system** | Visual consistency with pixel-art sprites; all effects snap to the same 3–5 px art-pixel grid |
+
+---
+
+## 7. External Sources
 
 ### Libraries & Frameworks
 
@@ -277,7 +306,7 @@ The **Statistics Dashboard** (`StatsAnalyzer`) displays these across two tabs: a
 |---|---|---|---|
 | [Pygame-CE](https://pyga.me/) | 2.5.x | Game loop, rendering, input, audio | LGPL-2.1 |
 | [pandas](https://pandas.pydata.org/) | 2.x | CSV loading and data manipulation in StatsAnalyzer | BSD-3 |
-| [matplotlib](https://matplotlib.org/) | 3.x | Statistical graph rendering (pie, histogram, line, bar, boxplot) | Matplotlib License (BSD-style) |
+| [matplotlib](https://matplotlib.org/) | 3.x | Statistical graph rendering (pie, histogram, line, bar) | Matplotlib License (BSD-style) |
 | [seaborn](https://seaborn.pydata.org/) | 0.x | Graph styling and aesthetics | BSD-3 |
 | tkinter | stdlib | Statistics dashboard UI framework | PSF License |
 
