@@ -16,7 +16,7 @@ The statistics dashboard is a Tkinter window with an iOS Dark Mode aesthetic. It
 
 ## Summary Tab
 
-![Summary Tab](./00_summary_tab.png)
+![Summary Tab](./00_dashboard_overview.png)
 
 The Summary tab presents the full picture of recorded data in a single scrollable view. At the top is a descriptive statistics table, followed by average chip cards, and then three distribution info cards at the bottom. All components update instantly when a different session is selected in the sidebar.
 
