@@ -28,20 +28,47 @@
   - 🎨 **Unified 8-bit Pixel Art** — all sprites, HUD, VFX, and fonts drawn on a fixed pixel grid
   - 📊 **Real-Time CSV Event Logger** — six event types written per-event for downstream statistical analysis and visualisation
 
-- **Screenshots:**
+- **Proposal:** [original proposal.pdf](original%20proposal.pdf)
+- **UML Class Diagram:** [uml.pdf](uml.pdf)
 
-  | Gameplay | Statistics Dashboard |
-  |---|---|
-  | ![Gameplay](./screenshots/gameplay/gameplay_01.png) | ![Dashboard](./screenshots/visualization/00_dashboard_overview.png) |
-
-  > See `screenshots/gameplay/` for in-game screenshots and `screenshots/visualization/` for all graph and dashboard screenshots.
-
-- **Proposal:** [Guardian_Frog_Proposal_v4.pdf](./Guardian_Frog_Proposal_v4.pdf)
-
-- **YouTube Presentation (~7 minutes):** *(insert YouTube link here before submission)*
+- **YouTube Presentation (~7 minutes):** *([insert YouTube link here before submission](https://youtu.be/ROTMmpUOyjk))*
   1. Short intro and demonstration of the game and statistics dashboard
   2. Explanation of class design and OOP usage
   3. Explanation of statistical data and visualisation results
+
+---
+
+### Gameplay Screenshots
+
+| Main Menu | In-Game Survival |
+|:---:|:---:|
+| ![Main Menu](screenshots/gameplay/01_main_menu.png) | ![Gameplay](screenshots/gameplay/02_gameplay.png) |
+
+| Queen Bee Boss Fight | Game Over |
+|:---:|:---:|
+| ![Boss](screenshots/gameplay/03_boss_fight.png) | ![Game Over](screenshots/gameplay/04_game_over.png) |
+
+| Flamethrower Ability | Sword Whirlwind Ability |
+|:---:|:---:|
+| ![Flame](screenshots/gameplay/05_flamethrower.png) | ![Sword](screenshots/gameplay/06_sword.png) |
+
+---
+
+### Statistics Dashboard Screenshots
+
+| Summary Tab | Graphs Tab |
+|:---:|:---:|
+| ![Summary](screenshots/visualization/01_summary_tab.png) | ![Graphs](screenshots/visualization/10_graphs_tab.png) |
+
+| Graph 1 — Attack Type (Pie) | Graph 2 — Hover Duration (Histogram) |
+|:---:|:---:|
+| ![Pie](screenshots/visualization/11_pie_attack_type.png) | ![Hist](screenshots/visualization/12_hist_hover.png) |
+
+| Graph 3 — Kills per Session | Graph 4 — Ability Loss Cause |
+|:---:|:---:|
+| ![Bar](screenshots/visualization/13_bar_kills_per_session.png) | ![Bar2](screenshots/visualization/14_bar_ability_loss.png) |
+
+> Full screenshots: [`screenshots/gameplay/`](screenshots/gameplay/) and [`screenshots/visualization/`](screenshots/visualization/)
 
 ---
 
