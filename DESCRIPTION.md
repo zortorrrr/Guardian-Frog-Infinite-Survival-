@@ -93,7 +93,7 @@ The data component was motivated by a real constraint in game analytics: per-ses
 
 ## 3. UML Class Diagram
 
-The full class diagram is attached as **[UML.pdf](./UML.pdf)**.
+The full class diagram is attached as [uml.pdf](uml.pdf)
 
 It contains **10 classes** with attributes, methods, and four relationship types:
 
