@@ -31,7 +31,7 @@
 - **Proposal:** [original proposal.pdf](original%20proposal.pdf)
 - **UML Class Diagram:** [uml.pdf](uml.pdf)
 
-- **YouTube Presentation (~7 minutes):** *([insert YouTube link here before submission](https://youtu.be/ROTMmpUOyjk))*
+- **YouTube Presentation (~7 minutes):** *([ YouTube link here ](https://youtu.be/ROTMmpUOyjk))*
   1. Short intro and demonstration of the game and statistics dashboard
   2. Explanation of class design and OOP usage
   3. Explanation of statistical data and visualisation results
@@ -42,15 +42,15 @@
 
 | Main Menu | In-Game Survival |
 |:---:|:---:|
-| ![Main Menu](screenshots/gameplay/01_main_menu.png) | ![Gameplay](screenshots/gameplay/02_gameplay.png) |
+| ![Main Menu](screenshots/gameplay/menu.png) | ![Gameplay](screenshots/gameplay/gameplay_01.png) |
 
 | Queen Bee Boss Fight | Game Over |
 |:---:|:---:|
-| ![Boss](screenshots/gameplay/03_boss_fight.png) | ![Game Over](screenshots/gameplay/04_game_over.png) |
+| ![Boss](screenshots/gameplay/gameplay_05.png) | ![Game Over](screenshots/gameplay/game_over.png) |
 
-| Flamethrower Ability | Sword Whirlwind Ability |
+| ice wall Ability | Sword Whirlwind Ability |
 |:---:|:---:|
-| ![Flame](screenshots/gameplay/05_flamethrower.png) | ![Sword](screenshots/gameplay/06_sword.png) |
+| ![ice wall](screenshots/gameplay/gameplay_07.png) | ![Sword](screenshots/gameplay/gameplay_06.png) |
 
 ---
 
